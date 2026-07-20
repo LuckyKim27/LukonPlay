@@ -8,10 +8,10 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-// Daftar Channel YouTube Resmi (Bisa kamu tambah jika mau)
+// Daftar Channel YouTube Resmi dengan Channel ID yang Benar
 const CHANNELS = [
-    { name: 'Muse Indonesia', id: 'UCFM2M3yHByB39V892-Dvg' },
-    { name: 'Ani-One Asia', id: 'UC0wNSTMWNwcqq8QWJ63EB1w' }
+    { name: 'Muse Indonesia', id: 'UCAnA8H4A8yR4deGvhEtr2Bw' },
+    { name: 'Ani-One Asia', id: 'UC0wNSTMWIL3qaorLx0jie6A' }
 ];
 
 async function syncYouTubeToSupabase() {
@@ -27,7 +27,7 @@ async function syncYouTubeToSupabase() {
                 const title = item.title;
                 const description = item.contentSnippet || `Nonton anime resmi ${title} di ${channel.name}.`;
 
-                // Cek apakah video sudah ada di database Supabase
+                // Cek apakah video sudah ada di database Supabase (Tabel: Anime)
                 const { data: existing } = await supabase
                     .from('Anime')
                     .select('youtube_id')
@@ -37,7 +37,7 @@ async function syncYouTubeToSupabase() {
                 // Jika belum ada, masukkan sebagai data baru
                 if (!existing) {
                     console.log(`[Baru Ditemukan] Menyimpan: ${title}`);
-                    await supabase.from('anime').insert([
+                    const { error } = await supabase.from('Anime').insert([
                         {
                             youtube_id: videoId,
                             judul: title,
@@ -49,6 +49,10 @@ async function syncYouTubeToSupabase() {
                             rating: '4.8'
                         }
                     ]);
+
+                    if (error) {
+                        console.error(`Gagal insert ke Supabase:`, error.message);
+                    }
                 } else {
                     console.log(`[Sudah Ada] Dilewati: ${title}`);
                 }
