@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Video - Lukon Play</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+    <div class="wrapper">
+        <a href="#" id="backLink" style="color:var(--text-s); text-decoration:none; font-size:0.85rem; display:block; margin-bottom:12px;">← Kembali ke Detail</a>
+        
+        <div class="video-wrapper" style="aspect-ratio:16/9; width:100%; background:#000;">
+            <iframe id="player" style="width:100%; height:100%; border:none;" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+        </div>
+
+        <div class="info-panel" style="padding:15px; background:var(--bg-card); margin-top:15px; border-radius:10px;">
+            <h2 id="animeTitle" style="font-size:1rem; font-weight:600; color:#fff;">-</h2>
+            <p id="animeDesc" style="font-size:0.8rem; color:var(--text-s); margin-top:6px; line-height:1.4;">-</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script>
+        const id = new URLSearchParams(window.location.search).get('id');
+        document.getElementById('backLink').href = `detail.html?id=${id}`;
+
+        async function initPlayer() {
+            if (!id) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const { data: anime, error } = await dbSupabase
+                .from('anime')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (anime) {
+                document.getElementById('animeTitle').innerText = anime.judul;
+                document.getElementById('animeDesc').innerText = anime.deskripsi || "Video resmi dari YouTube.";
+                document.getElementById('player').src = `https://www.youtube.com/embed/${anime.youtube_id}?autoplay=1`;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", initPlayer);
+    </script>
+</body>
+</html>

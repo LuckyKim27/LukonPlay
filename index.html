@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lukon Play - Beranda</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+    <div class="wrapper">
+        <header class="header">
+            <h1 class="logo">LUKON PLAY</h1>
+            <div class="search-box">
+                <input type="text" id="search" placeholder="Cari anime..." oninput="filterSemua()">
+            </div>
+        </header>
+
+        <div class="genres">
+            <button class="genre-btn active" onclick="gantiGenre('all', this)">All</button>
+            <button class="genre-btn" onclick="gantiGenre('action', this)">Action</button>
+        </div>
+
+        <h2 class="title" id="sectionTitle">Rekomendasi Anime</h2>
+        <div class="grid" id="container"></div>
+    </div>
+
+    <nav class="nav-bottom">
+        <button class="nav-item active"><i class="nav-icon">⌂</i>Home</button>
+        <button class="nav-item"><i class="nav-icon">⚲</i>My List</button>
+        <button class="nav-item"><i class="nav-icon">⎋</i>History</button>
+        <button class="nav-item"><i class="nav-icon">⍥</i>Profile</button>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
