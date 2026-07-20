@@ -1,40 +1,52 @@
 const { createClient } = require('@supabase/supabase-js');
 const Parser = require('rss-parser');
+const path = require('path');
+const fs = require('fs');
+
 const parser = new Parser();
 
-// Kredensial Supabase dari GitHub Secrets
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    console.error("Kredensial SUPABASE_URL atau SUPABASE_SERVICE_ROLE_KEY tidak ditemukan!");
+    process.exit(1);
+}
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-// ID Channel YouTube Resmi
-const CHANNELS = [
-    { name: 'Muse Indonesia', id: 'UCAnA8H4A8yR4deGvhEtr2Bw' },
-    { name: 'Ani-One Asia', id: 'UC0wNSTMWIL3qaorLx0jie6A' }
+let CHANNELS = [
+    { name: 'Muse Indonesia', rssUrl: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCAnA8H4A8yR4deGvhEtr2Bw' },
+    { name: 'Ani-One Asia', rssUrl: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC0wNSTMWIL3qaorLx0jie6A' }
 ];
+
+const channelsPath = path.join(__dirname, '../data/channels.json');
+if (fs.existsSync(channelsPath)) {
+    try {
+        CHANNELS = JSON.parse(fs.readFileSync(channelsPath, 'utf8'));
+    } catch (e) {
+        console.warn("Gagal membaca data/channels.json, menggunakan fallback.");
+    }
+}
 
 async function syncYouTubeToSupabase() {
     console.log("Memulai sinkronisasi otomatis YouTube -> Supabase...");
 
     for (const channel of CHANNELS) {
         try {
-            const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channel.id}`;
-            const feed = await parser.parseURL(feedUrl);
+            const feed = await parser.parseURL(channel.rssUrl);
 
             for (const item of feed.items) {
                 const videoId = item.id.replace('yt:video:', '');
                 const title = item.title;
                 const description = item.contentSnippet || `Nonton anime resmi ${title} di ${channel.name}.`;
 
-                // Cek apakah video sudah ada di tabel 'anime'
                 const { data: existing } = await supabase
                     .from('anime')
                     .select('youtube_id')
                     .eq('youtube_id', videoId)
                     .maybeSingle();
 
-                // Jika belum ada, masukkan ke tabel 'anime'
                 if (!existing) {
                     console.log(`[Baru Ditemukan] Menyimpan: ${title}`);
                     const { error } = await supabase.from('anime').insert([
