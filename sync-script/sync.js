@@ -29,7 +29,7 @@ async function syncYouTubeToSupabase() {
 
                 // Cek apakah video sudah ada di database Supabase
                 const { data: existing } = await supabase
-                    .from('anime')
+                    .from('Anime')
                     .select('youtube_id')
                     .eq('youtube_id', videoId)
                     .maybeSingle();
