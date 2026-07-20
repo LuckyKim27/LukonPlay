@@ -7,10 +7,10 @@ async function loadAnimeFromSupabase() {
     }
 
     try {
+        // Ambil data dari tabel 'anime'
         const { data, error } = await dbSupabase
             .from('anime')
-            .select('*')
-            .order('created_at', { ascending: false });
+            .select('*');
 
         if (error) throw error;
 
@@ -21,7 +21,7 @@ async function loadAnimeFromSupabase() {
     } catch (err) {
         console.error("Gagal memuat data dari Supabase:", err);
         if (container) {
-            container.innerHTML = `<p style="grid-column:span 3;text-align:center;color:var(--text-s);font-size:0.85rem;padding:20px 0;">Belum ada anime/Gagal memuat data.</p>`;
+            container.innerHTML = `<p style="grid-column:span 3;text-align:center;color:var(--text-s);font-size:0.85rem;padding:20px 0;">Gagal memuat data (${err.message}).</p>`;
         }
     }
 }
@@ -29,11 +29,15 @@ async function loadAnimeFromSupabase() {
 function renderAnime(list) {
     const container = document.getElementById('container');
     if (!container) return;
+    
     container.innerHTML = list.length ? "" : `<p style="grid-column:span 3;text-align:center;color:var(--text-s);font-size:0.85rem;padding:20px 0;">Belum ada anime tersedia.</p>`;
     
     list.forEach(a => {
+        // Menggunakan youtube_id sebagai identifier pengganti id
+        const animeId = a.youtube_id || a.id; 
+        
         container.innerHTML += `
-            <div class="card" onclick="bukaDetail('${a.id}')">
+            <div class="card" onclick="bukaDetail('${animeId}')">
                 <div class="thumb-box">
                     <img src="${a.thumbnail}" alt="${a.judul}">
                     <span class="rate">★ ${a.rating || '4.8'}</span>
@@ -44,22 +48,26 @@ function renderAnime(list) {
 }
 
 function filterSemua() {
-    const keyword = document.getElementById('search').value.toLowerCase();
-    const hasil = databaseAnime.filter(a => a.judul.toLowerCase().includes(keyword));
+    const searchInput = document.getElementById('search');
+    if (!searchInput) return;
+    const keyword = searchInput.value.toLowerCase();
+    const hasil = databaseAnime.filter(a => a.judul && a.judul.toLowerCase().includes(keyword));
     renderAnime(hasil);
 }
 
 function gantiGenre(genre, btn) {
     document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    if (btn) btn.classList.add('active');
+    
     if (genre === 'all') {
         renderAnime(databaseAnime);
     } else {
-        renderAnime(databaseAnime.filter(a => (a.genre || '').toLowerCase() === genre));
+        renderAnime(databaseAnime.filter(a => (a.genre || '').toLowerCase().includes(genre.toLowerCase())));
     }
 }
 
 function bukaDetail(id) {
+    // Membuka halaman detail dengan query parameter id (youtube_id)
     window.location.href = `detail.html?id=${id}`;
 }
 
