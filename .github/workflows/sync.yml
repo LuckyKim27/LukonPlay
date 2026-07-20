@@ -2,9 +2,9 @@ name: YouTube to Supabase Auto Sync
 
 on:
   schedule:
-    # Otomatis berjalan setiap 1 jam sekali
-    - cron: '0 * * * *'
-  workflow_dispatch: # Tombol untuk menjalankan manual kapan saja
+    # Berjalan otomatis setiap 6 jam
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Memungkinkan tombol 'Run workflow' manual di GitHub Actions
 
 jobs:
   sync:
@@ -12,12 +12,12 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Install Dependencies
         run: |
@@ -31,4 +31,3 @@ jobs:
         run: |
           cd sync-script
           node sync.js
-
