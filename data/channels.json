@@ -1,4 +1,5 @@
 const CHANNELS = [
-    { name: 'Muse Indonesia', id: 'UCAnA8H4A8yR4deGvhEtr2Bw' },
-    { name: 'Ani-One Asia', id: 'UC0wNSTMWIL3qaorLx0jie6A' }
+    { name: 'Muse Indonesia', id: 'UCxxnxya_32jcKj4yN1_kD7A' },
+    { name: 'Ani-One Asia', id: 'UC0wNSTMWIL3qaorLx0jie6A' },
+    { name: 'Muse Asia', id: 'UCGbshtvS9t-8CW11W7TooQg' }
 ];
