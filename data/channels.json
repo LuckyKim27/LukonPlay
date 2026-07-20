@@ -1,26 +1,4 @@
-// ================================
-// Daftar Channel YouTube Resmi
-// ================================
-
 const CHANNELS = [
-    {
-        name: "Muse Indonesia",
-        id: "UCxxnxya_32jcKj4yN1_kD7A"
-    },
-    {
-        name: "Ani-One Asia",
-        id: "UC0wNSTMWIL3qaorLx0jie6A"
-    },
-    {
-        name: "Muse Asia",
-        id: "UCGbshtvS9t-8CW11W7TooQg"
-    },
-    {
-        name: "Muse Malaysia",
-        id: "UCvH25Nn5dFzR4sYQ4Z6Q2cQ"
-    },
-    {
-        name: "AnimeLog",
-        id: "UCsnDtu-g18tDA4miToMOjXQ"
-    }
+    { name: 'Muse Indonesia', id: 'UCAnA8H4A8yR4deGvhEtr2Bw' },
+    { name: 'Ani-One Asia', id: 'UC0wNSTMWIL3qaorLx0jie6A' }
 ];
