@@ -3,11 +3,13 @@ let databaseAnime = [];
 async function loadAnimeFromSupabase() {
     const container = document.getElementById('container');
     if (container) {
-        container.innerHTML = `<p style="grid-column:span 3;text-align:center;color:var(--text-s);font-size:0.85rem;padding:20px 0;">Memuat anime dari Supabase...</p>`;
+        container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; color: var(--text-s); padding: 40px 0;">
+                <p style="font-size: 0.9rem;">Memuat koleksi anime...</p>
+            </div>`;
     }
 
     try {
-        // Ambil data dari tabel 'anime'
         const { data, error } = await dbSupabase
             .from('anime')
             .select('*');
@@ -21,7 +23,11 @@ async function loadAnimeFromSupabase() {
     } catch (err) {
         console.error("Gagal memuat data dari Supabase:", err);
         if (container) {
-            container.innerHTML = `<p style="grid-column:span 3;text-align:center;color:var(--text-s);font-size:0.85rem;padding:20px 0;">Gagal memuat data (${err.message}).</p>`;
+            container.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; color: #ff5555; padding: 30px 0;">
+                    <p style="font-size: 0.85rem;">Gagal memuat data (${err.message}).</p>
+                    <button onclick="loadAnimeFromSupabase()" style="margin-top: 10px; background: var(--accent); color: #fff; border: none; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 0.8rem;">Coba Lagi</button>
+                </div>`;
         }
     }
 }
@@ -30,19 +36,25 @@ function renderAnime(list) {
     const container = document.getElementById('container');
     if (!container) return;
     
-    container.innerHTML = list.length ? "" : `<p style="grid-column:span 3;text-align:center;color:var(--text-s);font-size:0.85rem;padding:20px 0;">Belum ada anime tersedia.</p>`;
-    
+    if (!list || list.length === 0) {
+        container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; color: var(--text-s); padding: 30px 0;">
+                <p style="font-size: 0.85rem;">Tidak ada anime yang ditemukan.</p>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = "";
     list.forEach(a => {
-        // Menggunakan youtube_id sebagai identifier pengganti id
         const animeId = a.youtube_id || a.id; 
         
         container.innerHTML += `
             <div class="card" onclick="bukaDetail('${animeId}')">
                 <div class="thumb-box">
-                    <img src="${a.thumbnail}" alt="${a.judul}">
+                    <img src="${a.thumbnail}" alt="${a.judul}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x400?text=No+Cover'">
                     <span class="rate">★ ${a.rating || '4.8'}</span>
                 </div>
-                <p class="card-title">${a.judul}</p>
+                <p class="card-title" title="${a.judul}">${a.judul}</p>
             </div>`;
     });
 }
@@ -50,7 +62,7 @@ function renderAnime(list) {
 function filterSemua() {
     const searchInput = document.getElementById('search');
     if (!searchInput) return;
-    const keyword = searchInput.value.toLowerCase();
+    const keyword = searchInput.value.toLowerCase().trim();
     const hasil = databaseAnime.filter(a => a.judul && a.judul.toLowerCase().includes(keyword));
     renderAnime(hasil);
 }
@@ -67,7 +79,6 @@ function gantiGenre(genre, btn) {
 }
 
 function bukaDetail(id) {
-    // Membuka halaman detail dengan query parameter id (youtube_id)
     window.location.href = `detail.html?id=${id}`;
 }
 
