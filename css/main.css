@@ -1,0 +1,36 @@
+:root {
+    --bg-main: #121214;
+    --bg-card: #1a1a1e;
+    --accent: #2f80ed;
+    --text-p: #ffffff;
+    --text-s: #8d8d99;
+    --border: #29292e;
+}
+
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: 'Segoe UI', sans-serif; 
+}
+
+body { 
+    background-color: var(--bg-main); 
+    color: var(--text-p); 
+    padding-bottom: 90px; 
+}
+
+.wrapper { 
+    max-width: 500px; 
+    margin: 0 auto; 
+    padding: 20px; 
+}
+
+.title { 
+    font-size: 0.9rem; 
+    margin-bottom: 15px; 
+    color: var(--text-s); 
+    font-weight: 600; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+}
