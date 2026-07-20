@@ -1,7 +1,10 @@
 [
   {
-    "id": "UCFM2M3yHByB39V892-Dvg",
     "name": "Muse Indonesia",
-    "genre": "action"
+    "rssUrl": "https://www.youtube.com/feeds/videos.xml?channel_id=UCAnA8H4A8yR4deGvhEtr2Bw"
+  },
+  {
+    "name": "Ani-One Asia",
+    "rssUrl": "https://www.youtube.com/feeds/videos.xml?channel_id=UC0wNSTMWIL3qaorLx0jie6A"
   }
 ]
