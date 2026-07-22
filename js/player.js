@@ -1,93 +1,76 @@
-const params = new URLSearchParams(window.location.search);
-const id = params.get('id');
-const epId = parseInt(params.get('ep'));
-const db = JSON.parse(localStorage.getItem('lukon_db')) || [];
-const anime = db.find(a => a.id === id);
+// js/player.js
 
-if(document.getElementById('backLink')) {
-    document.getElementById('backLink').href = `detail.html?id=${id}`;
-}
+async function initPlayer() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    const ep = urlParams.get('ep') || 1;
 
-if(anime) {
-    const ep = anime.episodes.find(e => e.id === epId);
-    if(ep) {
-        if(document.getElementById('animeTitle')) document.getElementById('animeTitle').innerText = anime.judul;
-        if(document.getElementById('epTitle')) document.getElementById('epTitle').innerText = ep.judul;
-        if(document.getElementById('player')) document.getElementById('player').src = ep.videoUrl;
-
-        let hist = JSON.parse(localStorage.getItem('lukon_hist')) || [];
-        hist = hist.filter(i => i !== id);
-        hist.unshift(id);
-        localStorage.setItem('lukon_hist', JSON.stringify(hist));
+    const backLink = document.getElementById('backLink');
+    if (backLink && id) {
+        backLink.href = `detail.html?id=${id}`;
     }
 
-    const hList = document.getElementById('horizontalEpList');
-    if(hList) {
-        anime.episodes.forEach(e => {
-            const activeClass = e.id === epId ? 'active' : '';
-            hList.innerHTML += `<a href="watch.html?id=${id}&ep=${e.id}" class="ep-box-item ${activeClass}">${e.id}</a>`;
-        });
-    }
-}
-
-let userVote = localStorage.getItem(`uvote_${id}`) || 'none';
-
-function renderVotes() {
-    let l = parseInt(localStorage.getItem(`l_${id}`)) || 0;
-    let d = parseInt(localStorage.getItem(`d_${id}`)) || 0;
-    if(document.getElementById('likeCount')) document.getElementById('likeCount').innerText = l;
-    if(document.getElementById('dislikeCount')) document.getElementById('dislikeCount').innerText = d;
-}
-
-function vote(type) {
-    let l = parseInt(localStorage.getItem(`l_${id}`)) || 0;
-    let d = parseInt(localStorage.getItem(`d_${id}`)) || 0;
-
-    if(userVote === type) {
-        if(type === 'like') l--; else d--;
-        userVote = 'none';
-    } else {
-        if(userVote === 'like') l--;
-        if(userVote === 'dislike') d--;
-        if(type === 'like') l++; else d++;
-        userVote = type;
-    }
-
-    localStorage.setItem(`l_${id}`, l);
-    localStorage.setItem(`d_${id}`, d);
-    localStorage.setItem(`uvote_${id}`, userVote);
-    renderVotes();
-}
-
-function loadKomen() {
-    const list = document.getElementById('comments');
-    if(!list) return;
-    list.innerHTML = "";
-    const saved = JSON.parse(localStorage.getItem(`c_${id}_${epId}`)) || [];
-    if (saved.length === 0) {
-        list.innerHTML = `<p style="font-size:0.75rem; color:var(--text-s); padding: 5px 0;">Belum ada komentar.</p>`;
+    if (!id) {
+        window.location.href = 'index.html';
         return;
     }
-    saved.forEach(c => {
-        list.innerHTML += `
-            <div class="c-item">
-                <img src="${c.userPhoto}" class="c-avatar" alt="">
-                <div class="c-body">
-                    <strong>${c.userName}</strong>
-                    <div class="c-text">${c.text}</div>
-                </div>
-            </div>`;
-    });
+
+    // Simpan episode terakhir yang sedang ditonton
+    localStorage.setItem(`last_ep_${id}`, ep);
+
+    let anime = null;
+    if (typeof AnimeAPI !== 'undefined') {
+        anime = await AnimeAPI.getAnimeById(id);
+    }
+
+    if (!anime) {
+        const localDb = JSON.parse(localStorage.getItem('lukon_db') || '[]');
+        anime = localDb.find(a => (a.youtube_id || a.id) == id);
+    }
+
+    const targetVideoId = anime ? (anime.youtube_id || anime.id) : id;
+    const playerElem = document.getElementById('player');
+    const titleElem = document.getElementById('animeTitle');
+    const epElem = document.getElementById('epTitle');
+
+    if (playerElem) {
+        playerElem.src = `https://www.youtube.com/embed/${targetVideoId}?autoplay=1`;
+    }
+
+    if (titleElem && anime) {
+        titleElem.innerText = typeof cleanTitle === 'function' ? cleanTitle(anime.judul) : anime.judul;
+    }
+
+    if (epElem) {
+        epElem.innerText = `Episode ${ep}`;
+    }
+
+    // Render Tombol Episode Horizontal
+    const epContainer = document.getElementById('epHorizontal');
+    if (epContainer) {
+        let hHTML = '';
+        for (let i = 1; i <= 12; i++) {
+            const isActive = (i == ep);
+            hHTML += `
+                <button onclick="location.href='watch.html?id=${id}&ep=${i}'" 
+                        class="pill-btn" 
+                        style="${isActive ? 'background:var(--accent); font-weight:bold;' : ''}">
+                    Ep ${i}
+                </button>
+            `;
+        }
+        epContainer.innerHTML = hHTML;
+    }
 }
 
-function kirimKomen() {
-    const txt = document.getElementById('cText');
-    if(!txt || !txt.value.trim()) return;
-    const googleUser = JSON.parse(localStorage.getItem('google_user'));
-    const saved = JSON.parse(localStorage.getItem(`c_${id}_${epId}`)) || [];
-    
-    saved.unshift({ userName: googleUser.name, userPhoto: googleUser.photo, text: txt.value });
-    localStorage.setItem(`c_${id}_${epId}`, JSON.stringify(saved));
-    txt.value = "";
-    loadKomen();
+function addLike() {
+    const el = document.getElementById('likeCount');
+    if (el) el.innerText = parseInt(el.innerText || 0) + 1;
 }
+
+function addUnlike() {
+    const el = document.getElementById('unlikeCount');
+    if (el) el.innerText = parseInt(el.innerText || 0) + 1;
+}
+
+document.addEventListener("DOMContentLoaded", initPlayer);
