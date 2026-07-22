@@ -4,73 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail Anime - Lukon Play</title>
+    
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
 
-    <div class="wrapper">
-        <a href="index.html" class="back-btn">← Kembali</a>
-        <img id="banner" class="banner" src="" alt="">
+    <main class="wrapper">
+        <header class="top-bar">
+            <button class="btn-back" onclick="location.href='index.html'">← Kembali</button>
+            <button id="btnSave" class="btn-pill-action" onclick="toggleSave()">+ Simpan</button>
+        </header>
 
-        <div class="meta-section">
-            <img id="poster" class="poster" src="" alt="">
-            <div class="info">
-                <h1 id="judul" style="font-size:1.1rem; font-weight:600;">-</h1>
-            </div>
+        <div class="poster-container">
+            <img id="poster" src="" alt="Poster Anime" class="detail-poster">
         </div>
 
-        <div class="stats">
-            <span>★ <span id="ratingVal">4.8</span> Rating</span>
-            <span>Genre: <span id="genreVal">Action</span></span>
-        </div>
+        <section class="anime-info">
+            <h1 id="judul" class="detail-title">Memuat judul...</h1>
+            <p id="genre" class="detail-genre">Anime</p>
+            <p id="deskripsi" class="detail-desc">Memuat deskripsi anime...</p>
+            
+            <a id="btnPlay" href="#" class="btn-primary-play">▶ Putar Episode 1</a>
+        </section>
 
-        <div class="content">
-            <h3 class="section-label">Sinopsis</h3>
-            <p class="sinopsis" id="sinopsis">Memuat data...</p>
-
-            <h3 class="section-label">Pemutar Video</h3>
-            <div class="ep-list" id="episodes"></div>
-        </div>
-    </div>
+        <section class="episodes-section">
+            <h2 class="section-title">Daftar Episode</h2>
+            <div id="episodeList" class="episode-list">
+                </div>
+        </section>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
-    <script>
-        const id = new URLSearchParams(window.location.search).get('id');
-
-        async function loadDetail() {
-            if (!id) {
-                window.location.href = 'index.html';
-                return;
-            }
-
-            const { data: anime, error } = await dbSupabase
-                .from('anime')
-                .select('*')
-                .eq('id', id)
-                .single();
-
-            if (error || !anime) {
-                document.getElementById('sinopsis').innerText = "Gagal memuat detail anime.";
-                return;
-            }
-
-            document.getElementById('banner').src = anime.banner || anime.thumbnail;
-            document.getElementById('poster').src = anime.thumbnail;
-            document.getElementById('judul').innerText = anime.judul;
-            document.getElementById('sinopsis').innerText = anime.deskripsi || "Tidak ada deskripsi.";
-            document.getElementById('ratingVal').innerText = anime.rating || '4.8';
-            document.getElementById('genreVal').innerText = anime.genre || 'Action';
-
-            document.getElementById('episodes').innerHTML = `
-                <a href="watch.html?id=${anime.id}" class="ep-item">
-                    <span>Tonton Video (${anime.judul})</span>
-                    <span class="play-icon">▶ Putar</span>
-                </a>`;
-        }
-
-        document.addEventListener("DOMContentLoaded", loadDetail);
-    </script>
+    <script src="js/api.js"></script>
+    <script src="js/detail.js"></script>
 </body>
 </html>
