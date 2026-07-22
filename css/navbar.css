@@ -1,14 +1,89 @@
-.header { text-align: center; margin-bottom: 15px; }
-.logo { font-size: 1.5rem; font-weight: 800; color: var(--text-p); letter-spacing: 2px; text-transform: uppercase; }
-.search-box input { width: 100%; padding: 12px 18px; border-radius: 25px; border: 1px solid var(--border); background: var(--bg-card); color: #fff; outline: none; margin-top: 12px; font-size: 0.85rem; }
+/* css/navbar.css */
 
-.genres { display: flex; gap: 8px; margin: 15px 0; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
-.genres::-webkit-scrollbar { display: none; }
-.genre-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-s); padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
-.genre-btn.active { background: #fff; color: #000; border-color: #fff; font-weight: bold; }
+.bottom-nav {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 480px;
+    height: 64px; /* Tinggi pasti agar proporsional */
+    background: var(--bg-nav);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    padding: 0 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 32px;
+    z-index: 1000;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
 
-.nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-card); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; max-width: 1100px; margin: 0 auto; }
-.nav-item { background: none; border: none; color: var(--text-s); font-size: 0.7rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 500; flex: 1; }
-.nav-icon { font-size: 1.1rem; color: #ffffff; font-style: normal; line-height: 1; display: block; }
-.nav-item.active { color: var(--accent); }
-.nav-item.active .nav-icon { color: var(--accent); }
+.nav-item {
+    background: none;
+    border: none;
+    color: var(--text-s);
+    font-size: 0.72rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    transition: all 0.25s ease;
+    flex: 1;
+    height: 100%;
+}
+
+.nav-item svg {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
+    flex-shrink: 0; /* Mencegah ikon gepeng/tertekan */
+    fill: var(--text-s);
+    transition: fill 0.25s ease, transform 0.25s ease;
+}
+
+.nav-item span {
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.nav-item:hover {
+    color: var(--text-p);
+}
+
+.nav-item.active {
+    color: var(--accent);
+}
+
+.nav-item.active svg {
+    fill: var(--accent);
+    transform: translateY(-2px);
+}
+
+/* Tampilan Desktop & Laptop (Navigasi Kapsul Lebih Sesuai) */
+@media (min-width: 768px) {
+    .bottom-nav {
+        max-width: 560px;
+        height: 60px;
+        bottom: 20px;
+    }
+    .nav-item {
+        flex-direction: row;
+        gap: 8px;
+        font-size: 0.82rem;
+    }
+    .nav-item svg {
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
+        min-height: 20px;
+    }
+}
