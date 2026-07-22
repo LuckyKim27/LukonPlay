@@ -1,53 +1,39 @@
-let databaseAnime = [];
+// js/api.js
 
-async function loadAnimeData() {
-    const container = document.getElementById("container");
+const AnimeAPI = {
+    // 1. Ambil semua daftar anime dari Supabase
+    async getAllAnime() {
+        try {
+            if (!window.dbSupabase) return [];
+            const { data, error } = await window.dbSupabase
+                .from('anime')
+                .select('*')
+                .order('created_at', { ascending: false });
 
-    container.innerHTML = "<p>Memuat anime...</p>";
-
-    const channelId = "UCxxnxya_32jcKj4yN1_kD7A"; // Ganti dengan Channel ID Muse Indonesia
-    const api = `https://api.rss2json.com/v1/api.json?rss_url=https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
-
-    try {
-        const res = await fetch(api);
-        const json = await res.json();
-
-        if (json.status !== "ok") {
-            throw new Error("API gagal");
+            if (error) throw error;
+            return data || [];
+        } catch (err) {
+            console.error("Gagal mengambil data anime dari Supabase:", err.message);
+            return [];
         }
+    },
 
-        databaseAnime = json.items.map(item => {
-            const videoId = item.link.split("v=")[1];
+    // 2. Ambil detail anime berdasarkan ID / YouTube ID
+    async getAnimeById(id) {
+        if (!id) return null;
+        try {
+            if (!window.dbSupabase) return null;
+            const { data, error } = await window.dbSupabase
+                .from('anime')
+                .select('*')
+                .or(`youtube_id.eq.${id},id.eq.${id}`)
+                .maybeSingle();
 
-            return {
-                id: videoId,
-                judul: item.title,
-                genre: "Anime",
-                thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-                banner: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-                rating: "5.0",
-                sinopsis: item.description,
-                episodes: [{
-                    id: 1,
-                    judul: item.title,
-                    videoUrl: `https://www.youtube.com/embed/${videoId}`
-                }]
-            };
-        });
-
-        localStorage.setItem("lukon_db", JSON.stringify(databaseAnime));
-
-        renderAnime(databaseAnime);
-
-    } catch (e) {
-        console.error(e);
-
-        container.innerHTML = `
-        <center>
-            <h3>Gagal memuat anime</h3>
-            <button onclick="loadAnimeData()">Coba Lagi</button>
-        </center>`;
+            if (error) throw error;
+            return data;
+        } catch (err) {
+            console.error(`Gagal mengambil detail anime ID (${id}):`, err.message);
+            return null;
+        }
     }
-}
-
-document.addEventListener("DOMContentLoaded", loadAnimeData);
+};
