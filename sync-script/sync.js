@@ -1,79 +1,82 @@
 const { createClient } = require('@supabase/supabase-js');
-const Parser = require('rss-parser');
-const path = require('path');
-const fs = require('fs');
-
-const parser = new Parser();
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    console.error("Kredensial SUPABASE_URL atau SUPABASE_SERVICE_ROLE_KEY tidak ditemukan!");
+    console.error("❌ Error: SUPABASE_URL atau SUPABASE_SERVICE_ROLE_KEY belum diatur di environment variable!");
     process.exit(1);
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-let CHANNELS = [
-    { name: 'Muse Indonesia', rssUrl: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCAnA8H4A8yR4deGvhEtr2Bw' },
-    { name: 'Ani-One Asia', rssUrl: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC0wNSTMWIL3qaorLx0jie6A' }
-];
+// Fungsi Delay agar tidak terkena Rate Limit Jikan API (MyAnimeList)
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-const channelsPath = path.join(__dirname, '../data/channels.json');
-if (fs.existsSync(channelsPath)) {
+async function fetchAndSyncAnime() {
+    console.log("🚀 Memulai sinkronisasi & pembaruan otomatis dari MyAnimeList...");
+
     try {
-        CHANNELS = JSON.parse(fs.readFileSync(channelsPath, 'utf8'));
-    } catch (e) {
-        console.warn("Gagal membaca data/channels.json, menggunakan fallback.");
-    }
-}
+        // Mengambil Top Anime dari MyAnimeList API (Jikan v4)
+        const response = await fetch('https://api.jikan.moe/v4/top/anime?limit=25');
+        const result = await response.json();
+        const animeList = result.data || [];
 
-async function syncYouTubeToSupabase() {
-    console.log("Memulai sinkronisasi otomatis YouTube -> Supabase...");
+        let totalProcessed = 0;
+        let totalError = 0;
 
-    for (const channel of CHANNELS) {
-        try {
-            const feed = await parser.parseURL(channel.rssUrl);
+        for (const anime of animeList) {
+            const malId = anime.mal_id;
+            const judul = anime.title_english || anime.title;
+            const deskripsi = anime.synopsis || "Tidak ada deskripsi.";
+            const thumbnail = anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url;
+            const rating = anime.score ? anime.score.toString() : "4.8";
+            
+            // Format Genre & Studio
+            const genres = (anime.genres || []).map(g => g.name).join(', ') || 'Anime';
+            const studio = (anime.studios && anime.studios[0]) ? anime.studios[0].name : 'Resmi';
 
-            for (const item of feed.items) {
-                const videoId = item.id.replace('yt:video:', '');
-                const title = item.title;
-                const description = item.contentSnippet || `Nonton anime resmi ${title} di ${channel.name}.`;
+            // Extract Trailer / Link YouTube
+            const ytYoutubeId = anime.trailer?.youtube_id || "v9H2S82O8A4"; // Fallback default
+            const ytUrl = anime.trailer?.url || `https://www.youtube.com/watch?v=${ytYoutubeId}`;
+            const banner = anime.trailer?.images?.maximum_image_url || thumbnail;
 
-                const { data: existing } = await supabase
-                    .from('anime')
-                    .select('youtube_id')
-                    .eq('youtube_id', videoId)
-                    .maybeSingle();
-
-                if (!existing) {
-                    console.log(`[Baru Ditemukan] Menyimpan: ${title}`);
-                    const { error } = await supabase.from('anime').insert([
-                        {
-                            youtube_id: videoId,
-                            judul: title,
-                            thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-                            banner: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-                            deskripsi: description,
-                            youtube: `https://www.youtube.com/watch?v=${videoId}`,
-                            genre: 'Action',
-                            rating: '4.8'
-                        }
-                    ]);
-
-                    if (error) {
-                        console.error(`Gagal insert ke Supabase:`, error.message);
+            // Gunakan .upsert() agar otomatis MEMPERBARUI jika mal_id sudah ada,
+            // atau MENAMBAH BARU jika mal_id belum ada.
+            const { error } = await supabase
+                .from('anime')
+                .upsert([
+                    {
+                        mal_id: malId,
+                        youtube_id: ytYoutubeId,
+                        judul: judul,
+                        deskripsi: deskripsi,
+                        thumbnail: thumbnail,
+                        banner: banner,
+                        genre: genres,
+                        studio: studio,
+                        rating: rating,
+                        youtube: ytUrl
                     }
-                } else {
-                    console.log(`[Sudah Ada] Dilewati: ${title}`);
-                }
+                ], { onConflict: 'mal_id' });
+
+            if (!error) {
+                console.log(`✅ [Berhasil Sync/Update] ${judul}`);
+                totalProcessed++;
+            } else {
+                console.error(`❌ Gagal update ${judul}:`, error.message);
+                totalError++;
             }
-        } catch (err) {
-            console.error(`Gagal mengambil data dari ${channel.name}:`, err.message);
+
+            // Jeda 500ms antar request agar aman dari limit API
+            await delay(500);
         }
+
+        console.log(`\n🎉 Proses Selesai! Total Anime Terproses/Diperbarui: ${totalProcessed}, Error: ${totalError}`);
+
+    } catch (err) {
+        console.error("❌ Error utama saat sinkronisasi:", err.message);
     }
-    console.log("Sinkronisasi otomatis selesai!");
 }
 
-syncYouTubeToSupabase();
+fetchAndSyncAnime();
